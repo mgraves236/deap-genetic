@@ -155,7 +155,7 @@ p_ij, d_j = generate_instance(n, m)
 # print(p_ij)
 # print(d_j)
 # algorithm parameters
-CXPB, MUTPB = 0.5, 0.3  # probability of performing a crssover, muatation probability, number of genrations
+CXPB, MUTPB = 0.5, 0.3  # probability of performing a crossover, mutation probability, number of generations
 IND_SIZE = n
 # a minimizing fitness is built using negatives weights
 # create a fitness function with few objectives
@@ -195,3 +195,4 @@ plt.title("s(x) vs. Iterations")
 plt.xlabel("iterations")
 plt.ylabel("s(x)")
 plt.plot(n_arr, sx_arr, color='purple')
+plt.show()
