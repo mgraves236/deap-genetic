@@ -22,10 +22,64 @@ def generate_instance(n: int, m: int):
         matrix2[i] = rng.nextInt(A, B)
     return (matrix, matrix2)
 
+
+def makespan(individual):
+    machine_time = [0 for x in range(n)]
+    for j in range(0, len(machine_time)):
+        current = individual[j]
+        machine_time[0] += p_ij[current][0]
+        for i in range(1, m):
+            if machine_time[i] < machine_time[i - 1]:
+                machine_time[i] = (machine_time[i - 1] - machine_time[i]) + machine_time[i] + p_ij[current][i]
+            else:
+                machine_time[i] += p_ij[current][i]
+    return machine_time[m - 1]
+
+
+def total_flow_time(individual):
+    machine_time = [0 for x in range(n)]
+    sum = 0
+    for j in range(0, len(machine_time)):
+        current = individual[j]
+        machine_time[0] += p_ij[current][0]
+        for i in range(1, m):
+            if machine_time[i] < machine_time[i - 1]:
+                machine_time[i] = (machine_time[i - 1] - machine_time[i]) + machine_time[i] + p_ij[current][i]
+            else:
+                machine_time[i] += p_ij[current][i]
+
+            if i == m:
+                sum = sum + machine_time[i]
+    return sum
+
+
+def max_tardiness(individual):
+    machine_time = [0 for x in range(n)]
+    tardiness = [0 for x in range(n)]
+    max = 0
+    for j in range(0, len(machine_time)):
+        current = individual[j]
+        machine_time[0] += p_ij[current][0]
+        for i in range(1, m):
+            if machine_time[i] < machine_time[i - 1]:
+                machine_time[i] = (machine_time[i - 1] - machine_time[i]) + machine_time[i] + p_ij[current][i]
+            else:
+                machine_time[i] += p_ij[current][i]
+
+            if i == m:
+                if machine_time[i] - d_j[j] > 0:
+                    tardiness[j] = machine_time[i] - d_j[j]
+    max = max(tardiness)
+    return max
+
+
 # Function to evaluate individuals
 def evaluate(individual):
-    a = sum(individual)
-    return (a,)
+    x1 = makespan(individual)
+    x2 = total_flow_time(individual)
+
+    return (x1,)
+
 
 # def evaluate(individual):
 #     objective1 = calculate_objective1(individual)
@@ -35,11 +89,10 @@ def evaluate(individual):
 
 def genetic_algorithm():
     # main algorithm
-    population = toolbox.population(n=10)
+    population = toolbox.population(n=20)
     # algorithms.eaSimple(population, toolbox, cxpb=CXPB, mutpb=MUTPB, ngen=NGEN)
     fitnesses = map(toolbox.evaluate, population)
     for ind, fit in zip(population, fitnesses):
-        print(ind)
         ind.fitness.values = fit
     for g in range(NGEN):
         offspring = toolbox.select(population, len(population))
@@ -70,15 +123,15 @@ def genetic_algorithm():
 
 
 m = 3
-n = 5
+n = 100
 p_ij, d_j = generate_instance(n, m)
 # print(p_ij)
 # print(d_j)
 # algorithm parameters
-CXPB, MUTPB, NGEN = 0.5, 0.2, 40  # probability of performing a crssover, muatatiom probability, number of genrations
+CXPB, MUTPB, NGEN = 0.5, 0.3, 100  # probability of performing a crssover, muatation probability, number of genrations
 IND_SIZE = n
 # a minimizing fitness is built using negatives weights
-# create a fitness function with a few objectives
+# create a fitness function with few objectives
 # creator.create("FitnessMulti", base.Fitness, weights=(-1.0, -1.0))
 # creator.create("Individual", list, fitness=creator.FitnessMulti)
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
@@ -89,10 +142,13 @@ toolbox.register("individual", tools.initIterate, creator.Individual,
                  toolbox.indices)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 toolbox.register("mate", tools.cxTwoPoint)
-toolbox.register("mutate", tools.mutShuffleIndexes, indpb=0.1) # indpb probability for each attribute to be exchanged to another position
-toolbox.register("select", tools.selTournament, tournsize=3)
+toolbox.register("mutate", tools.mutShuffleIndexes,
+                 indpb=0.1)  # indpb probability for each attribute to be exchanged to another position
+toolbox.register("select", tools.selTournament, tournsize=int(0.9 * n))
 toolbox.register("evaluate", evaluate)
 
 result, res = genetic_algorithm()
-print(result)
-print(list(res))
+# print(result)
+res = list(res)
+min, = min(res)
+print(min)
