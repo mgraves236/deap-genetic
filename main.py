@@ -3,6 +3,7 @@ import random
 from deap import algorithms, base, creator, tools
 import RandomNumberGenerator
 from matplotlib import pyplot as plt
+from sys import maxsize
 
 rng = RandomNumberGenerator.RandomNumberGenerator(5546568)
 
@@ -94,16 +95,26 @@ def max_lateness(individual):
 
 
 # Function to evaluate individuals
+# def evaluate(individual):
+#     x1 = makespan(individual)
+#     x2 = total_flow_time(individual)
+#     x3 = max_tardiness(individual)
+#
+#     # c1 = 12 * n / 20
+#     # c2 = 1
+#     # c3 = 30 * n / 20
+#     c1 = 0.33
+#     c2 = 0.33
+#     c3 = 0.33
+#     sx = c1 * x1 + c2 * x2 + c3 * x3
+#     return sx,
+
 def evaluate(individual):
     x1 = makespan(individual)
     x2 = total_flow_time(individual)
     x3 = max_tardiness(individual)
 
-    c1 = 12 * n / 20
-    c2 = 1
-    c3 = 30 * n / 20
-    sx = c1 * x1 + c2 * x2 + c3 * x3
-    return sx,
+    return x1,
 
 
 # def evaluate(individual):
@@ -119,8 +130,11 @@ def genetic_algorithm():
     fitnesses = map(toolbox.evaluate, population)
     for ind, fit in zip(population, fitnesses):
         ind.fitness.values = fit
+        if ind.fitness.values < best:
+            best = ind.fitness.values
         # temp, = ind.fitness.values
         # print(temp)
+    P.append(best)
     for g in range(NGEN):
         offspring = toolbox.select(population, len(population))
         offspring = list(map(toolbox.clone, offspring))
@@ -141,7 +155,9 @@ def genetic_algorithm():
         fitnesses = map(toolbox.evaluate, invalid_ind)
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit
-
+            if ind.fitness.values < best:
+                best = ind.fitness.values
+        P.append(best)
         # The population is entirely replaced by the offspring
         population[:] = offspring
 
@@ -149,8 +165,12 @@ def genetic_algorithm():
     return (population, fitnesses)
 
 
+size_arr = [20, 50, 100]
+P = []
+best = maxsize
+# for n in size_arr:
 m = 3
-n = 20
+n = 50
 p_ij, d_j = generate_instance(n, m)
 # print(p_ij)
 # print(d_j)
@@ -159,7 +179,7 @@ CXPB, MUTPB = 0.5, 0.3  # probability of performing a crossover, mutation probab
 IND_SIZE = n
 # a minimizing fitness is built using negatives weights
 # create a fitness function with few objectives
-# creator.create("FitnessMulti", base.Fitness, weights=(-1.0, -1.0))
+# creator.create("FitnessMulti", base.Fitness, weights=(-1.0, -1.0, -1.0, -1.0))
 # creator.create("Individual", list, fitness=creator.FitnessMulti)
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", list, fitness=creator.FitnessMin)
@@ -168,31 +188,58 @@ toolbox.register("indices", random.sample, range(IND_SIZE), IND_SIZE)
 toolbox.register("individual", tools.initIterate, creator.Individual,
                  toolbox.indices)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+# cxOrdered
 toolbox.register("mate", tools.cxPartialyMatched)
 toolbox.register("mutate", tools.mutShuffleIndexes,
                  indpb=0.1)  # indpb probability for each attribute to be exchanged to another position
 toolbox.register("select", tools.selTournament, tournsize=int(0.1 * n))
 toolbox.register("evaluate", evaluate)
 
-n_arr = []
-sx_arr = []
-rep = 10
-NGEN = 10
-while NGEN < 10000:
-    n_arr.append(NGEN)
-    sum = 0
-    for i in range(0, rep):
-        # Main driver code
-        result, res = genetic_algorithm()
-        res = list(res)
-        minimum, = min(res)
-        sum = sum + minimum
-    sx_arr.append(sum / rep)
-    NGEN = NGEN * 2
+# n_arr = []
+# sx_arr = []
+# rep = 10
+# NGEN = 100
+# filename = "n=" + str(n) + "pareto.txt"
+# f = open(filename, "w")
+# while NGEN <= 10000:
+#     print(NGEN)
+#     n_arr.append(NGEN)
+#     f = open(filename, "a")
+#     f.write(str(NGEN) + '\t')
+#     f.close()
+#     sum = 0
+#     for i in range(0, rep):
+#         # Main driver code
+#         result, res = genetic_algorithm()
+#         res = list(res)
+#         minimum, = min(res)
+#         sum = sum + minimum
+#     sx_arr.append(sum / rep)
+#     f = open(filename, "a")
+#     f.write(str(sum / rep) + '\n')
+#     f.close()
+#
+#     if NGEN == 100:
+#         NGEN = 500
+#     else:
+#         NGEN = NGEN + 500
+# f.close()
+# plt.figure(1)
+# plt.title("s(x) vs. Iterations")
+# plt.xlabel("iterations")
+# plt.ylabel("s(x)")
+# plt.plot(n_arr, sx_arr, color='purple')
+# plt.show()
 
-plt.figure(1)
-plt.title("s(x) vs. Iterations")
-plt.xlabel("iterations")
-plt.ylabel("s(x)")
-plt.plot(n_arr, sx_arr, color='purple')
-plt.show()
+NGEN = 8000
+rep = 10
+filename = "pareto" + str(n) + ".txt"
+f = open(filename, "a")
+f.close()
+# Main driver code
+result, res = genetic_algorithm()
+res = list(res)
+minimum, = min(res)
+f = open(filename, "a")
+f.write(str(minimum) + '\n')
+f.close()
