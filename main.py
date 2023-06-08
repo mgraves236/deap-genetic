@@ -8,6 +8,18 @@ from sys import maxsize
 rng = RandomNumberGenerator.RandomNumberGenerator(5546568)
 
 
+# Function to get Pareto front
+def get_pareto_front(set):
+    F = set.copy()
+    F = list(dict.fromkeys(F))
+    for a in F:
+        for b in F:
+            if a != b:
+                if is_better(a, b):
+                    F.remove(b)
+                    break
+    return F
+
 # Function to generate instance
 def generate_instance(n: int, m: int):
     matrix = [[0 for x in range(m)] for y in range(n)]
@@ -108,32 +120,42 @@ def max_lateness(individual):
 #     c3 = 0.33
 #     sx = c1 * x1 + c2 * x2 + c3 * x3
 #     return sx,
-
+# #
 def evaluate(individual):
     x1 = makespan(individual)
     x2 = total_flow_time(individual)
     x3 = max_tardiness(individual)
+    x4 = max_lateness(individual)
 
-    return x1,
+    return x1, x2, x3, x4
 
 
-# def evaluate(individual):
-#     objective1 = calculate_objective1(individual)
-#     objective2 = calculate_objective2(individual)
-#
-#     return objective1, objective2
+def is_better(fitness, best):
+    k1, k2, k3, k4 = fitness
+    is_less_equal = True
+    is_less = False
+    for k, k_best in zip(fitness, best):
+        if k > k_best:
+            is_less_equal = False
+            break
+    for k, k_best in zip(fitness, best):
+        if k < k_best:
+            is_less = True
+            break
+    return is_less_equal and is_less
+
 
 def genetic_algorithm():
     # main algorithm
+    best = (maxsize, maxsize, maxsize, maxsize)
     population = toolbox.population(n=20)
     # algorithms.eaSimple(population, toolbox, cxpb=CXPB, mutpb=MUTPB, ngen=NGEN)
     fitnesses = map(toolbox.evaluate, population)
     for ind, fit in zip(population, fitnesses):
         ind.fitness.values = fit
-        if ind.fitness.values < best:
+        if is_better(ind.fitness.values, best):
             best = ind.fitness.values
-        # temp, = ind.fitness.values
-        # print(temp)
+
     P.append(best)
     for g in range(NGEN):
         offspring = toolbox.select(population, len(population))
@@ -155,7 +177,7 @@ def genetic_algorithm():
         fitnesses = map(toolbox.evaluate, invalid_ind)
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit
-            if ind.fitness.values < best:
+            if is_better(ind.fitness.values, best):
                 best = ind.fitness.values
         P.append(best)
         # The population is entirely replaced by the offspring
@@ -167,10 +189,9 @@ def genetic_algorithm():
 
 size_arr = [20, 50, 100]
 P = []
-best = maxsize
 # for n in size_arr:
 m = 3
-n = 50
+n = 20
 p_ij, d_j = generate_instance(n, m)
 # print(p_ij)
 # print(d_j)
@@ -179,10 +200,10 @@ CXPB, MUTPB = 0.5, 0.3  # probability of performing a crossover, mutation probab
 IND_SIZE = n
 # a minimizing fitness is built using negatives weights
 # create a fitness function with few objectives
-# creator.create("FitnessMulti", base.Fitness, weights=(-1.0, -1.0, -1.0, -1.0))
-# creator.create("Individual", list, fitness=creator.FitnessMulti)
-creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-creator.create("Individual", list, fitness=creator.FitnessMin)
+creator.create("FitnessMulti", base.Fitness, weights=(-1.0, -1.0, -1.0, -1.0))
+creator.create("Individual", list, fitness=creator.FitnessMulti)
+# creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+# creator.create("Individual", list, fitness=creator.FitnessMin)
 toolbox = base.Toolbox()
 toolbox.register("indices", random.sample, range(IND_SIZE), IND_SIZE)
 toolbox.register("individual", tools.initIterate, creator.Individual,
@@ -231,15 +252,18 @@ toolbox.register("evaluate", evaluate)
 # plt.plot(n_arr, sx_arr, color='purple')
 # plt.show()
 
-NGEN = 8000
+# NGEN = 8000
+NGEN = 100
 rep = 10
-filename = "pareto" + str(n) + ".txt"
-f = open(filename, "a")
-f.close()
+# filename = "pareto" + str(n) + ".txt"
+# f = open(filename, "a")
+# f.close()
 # Main driver code
 result, res = genetic_algorithm()
 res = list(res)
-minimum, = min(res)
-f = open(filename, "a")
-f.write(str(minimum) + '\n')
-f.close()
+# print(P)
+F = get_pareto_front(P)
+print(F)
+# f = open(filename, "a")
+# f.write(str(minimum) + '\n')
+# f.close()
