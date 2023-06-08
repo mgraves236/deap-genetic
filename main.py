@@ -252,18 +252,12 @@ toolbox.register("evaluate", evaluate)
 # plt.plot(n_arr, sx_arr, color='purple')
 # plt.show()
 
-# NGEN = 8000
-NGEN = 100
-rep = 10
-# filename = "pareto" + str(n) + ".txt"
-# f = open(filename, "a")
-# f.close()
+NGEN = 8000
+filename = "pareto" + str(n) + ".txt"
+f = open(filename, "a")
 # Main driver code
 result, res = genetic_algorithm()
-res = list(res)
-# print(P)
 F = get_pareto_front(P)
 print(F)
-# f = open(filename, "a")
-# f.write(str(minimum) + '\n')
-# f.close()
+f.write(str(F) + '\n')
+f.close()
