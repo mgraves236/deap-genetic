@@ -191,7 +191,7 @@ size_arr = [20, 50, 100]
 P = []
 # for n in size_arr:
 m = 3
-n = 20
+n = 50
 p_ij, d_j = generate_instance(n, m)
 # print(p_ij)
 # print(d_j)
@@ -252,12 +252,16 @@ toolbox.register("evaluate", evaluate)
 # plt.plot(n_arr, sx_arr, color='purple')
 # plt.show()
 
-NGEN = 8000
-filename = "pareto" + str(n) + ".txt"
-f = open(filename, "a")
+NGEN = 50
+filename = "pareto3" + str(n) + ".txt"
+f = open(filename, "w")
 # Main driver code
 result, res = genetic_algorithm()
 F = get_pareto_front(P)
-print(F)
-f.write(str(F) + '\n')
+f.write("P set\n" + str(P) + '\n\n\n')
+print(min(F, key=lambda tup: tup[0]), max(F, key=lambda tup: tup[0]))
+print(min(F, key=lambda tup: tup[1]), max(F, key=lambda tup: tup[1]))
+print(min(F, key=lambda tup: tup[2]), max(F, key=lambda tup: tup[2]))
+print(min(F, key=lambda tup: tup[3]), max(F, key=lambda tup: tup[3]))
+f.write("Pareto front" + str(F) + '\n')
 f.close()
