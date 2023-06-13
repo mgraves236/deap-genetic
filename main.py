@@ -12,13 +12,34 @@ rng = RandomNumberGenerator.RandomNumberGenerator(5546568)
 def get_pareto_front(set):
     F = set.copy()
     F = list(dict.fromkeys(F))
+    print("###################################3")
+    # print(F)
     for a in F:
         for b in F:
             if a != b:
-                if is_better(a, b):
+                print(a, b)
+
+                if not is_better(b, a):
+
                     F.remove(b)
                     break
     return F
+
+
+def is_better(fitness, best):
+    is_less_equal = True
+    is_less = False
+    for k, k_best in zip(fitness, best):
+        print(k, k_best)
+        if k > k_best:
+            is_less_equal = False
+
+    for k, k_best in zip(fitness, best):
+        if k < k_best:
+            is_less = True
+            break
+    return is_less_equal and is_less
+
 
 # Function to generate instance
 def generate_instance(n: int, m: int):
@@ -124,25 +145,10 @@ def max_lateness(individual):
 def evaluate(individual):
     x1 = makespan(individual)
     x2 = total_flow_time(individual)
-    x3 = max_tardiness(individual)
-    x4 = max_lateness(individual)
+    # x3 = max_tardiness(individual)
+    # x4 = max_lateness(individual)
 
-    return x1, x2, x3, x4
-
-
-def is_better(fitness, best):
-    k1, k2, k3, k4 = fitness
-    is_less_equal = True
-    is_less = False
-    for k, k_best in zip(fitness, best):
-        if k > k_best:
-            is_less_equal = False
-            break
-    for k, k_best in zip(fitness, best):
-        if k < k_best:
-            is_less = True
-            break
-    return is_less_equal and is_less
+    return x1, x2
 
 
 def genetic_algorithm():
@@ -191,7 +197,7 @@ size_arr = [20, 50, 100]
 P = []
 # for n in size_arr:
 m = 3
-n = 50
+n = 20
 p_ij, d_j = generate_instance(n, m)
 # print(p_ij)
 # print(d_j)
@@ -200,7 +206,7 @@ CXPB, MUTPB = 0.5, 0.3  # probability of performing a crossover, mutation probab
 IND_SIZE = n
 # a minimizing fitness is built using negatives weights
 # create a fitness function with few objectives
-creator.create("FitnessMulti", base.Fitness, weights=(-1.0, -1.0, -1.0, -1.0))
+creator.create("FitnessMulti", base.Fitness, weights=(-1.0, -1.0))
 creator.create("Individual", list, fitness=creator.FitnessMulti)
 # creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 # creator.create("Individual", list, fitness=creator.FitnessMin)
@@ -252,16 +258,48 @@ toolbox.register("evaluate", evaluate)
 # plt.plot(n_arr, sx_arr, color='purple')
 # plt.show()
 
-NGEN = 50
-filename = "pareto3" + str(n) + ".txt"
+NGEN = 100
+filename = "pareto4" + str(n) + ".txt"
 f = open(filename, "w")
 # Main driver code
 result, res = genetic_algorithm()
 F = get_pareto_front(P)
 f.write("P set\n" + str(P) + '\n\n\n')
-print(min(F, key=lambda tup: tup[0]), max(F, key=lambda tup: tup[0]))
-print(min(F, key=lambda tup: tup[1]), max(F, key=lambda tup: tup[1]))
-print(min(F, key=lambda tup: tup[2]), max(F, key=lambda tup: tup[2]))
-print(min(F, key=lambda tup: tup[3]), max(F, key=lambda tup: tup[3]))
+# print(min(F, key=lambda tup: tup[0]), max(F, key=lambda tup: tup[0]))
+# print(min(F, key=lambda tup: tup[1]), max(F, key=lambda tup: tup[1]))
+# print(min(F, key=lambda tup: tup[2]), max(F, key=lambda tup: tup[2]))
+# print(min(F, key=lambda tup: tup[3]), max(F, key=lambda tup: tup[3]))
+# print(P)
+# print("Pareto front:")
+# print(F)
 f.write("Pareto front" + str(F) + '\n')
 f.close()
+
+############################################# Wykres zbioru ############################################################
+# Chcemy zminimalizowac wartości, więc im bliżej 0, tym lepiej
+
+# Splitting the coordinates into separate lists
+x_P = [coord[0] for coord in P]
+y_P = [coord[1] for coord in P]
+
+x_F = [coord[0] for coord in F]
+y_F = [coord[1] for coord in F]
+
+# Plotting the points
+plt.scatter(x_P, y_P)
+plt.scatter(x_F, y_F, color='red')
+
+# Adding lines for set G
+for i in range(len(F) - 1):
+    plt.plot([x_F[i], x_F[i + 1]], [y_F[i], y_F[i + 1]], color='red')
+
+# Adding grid
+plt.grid(True)
+
+# Adding labels and title
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.title('Wykres zbioru')
+
+# Displaying the graph
+plt.show()
