@@ -12,16 +12,11 @@ rng = RandomNumberGenerator.RandomNumberGenerator(5546568)
 def get_pareto_front(set):
     F = set.copy()
     F = list(dict.fromkeys(F))
-    print("###################################3")
-    # print(F)
-    for a in F:
-        for b in F:
+    for a in F.copy():
+        for b in F.copy():
             if a != b:
-                print(a, b)
-
-                if not is_better(b, a):
-
-                    F.remove(b)
+                if is_better(b, a):
+                    F.remove(a)
                     break
     return F
 
